@@ -1,6 +1,7 @@
 package productcontroller
 
 import (
+	"encoding/json"
 	"gin-go/models"
 	"net/http"
 
@@ -51,5 +52,19 @@ func Update(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Record updated"})
 }
 func Delete(c *gin.Context) {
+	var input struct {
+		Id json.Number
+	}
+	var product models.Product
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
 
+	id, _ := input.Id.Int64()
+	if models.DB.Delete(&product, id).RowsAffected == 0 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Please select a product to delete"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Item deleted"})
 }
